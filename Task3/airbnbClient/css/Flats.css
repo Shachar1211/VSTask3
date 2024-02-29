@@ -1,0 +1,36 @@
+﻿.flag {
+    color: red;
+}
+
+.card {
+    border: 2px solid black;
+    margin: 5px;
+    text-align: center;
+    font-size: 18px;
+}
+
+label {
+    font-size: 18px;
+}
+
+h2 {
+    margin: 0 auto;
+    text-align: center;
+    color: #b22933;
+}
+
+form {
+    margin: 0 auto;
+    width: 40%;
+}
+
+#submitBTN, .flatsBTN {
+    color: #b22933;
+    border-block-start-color: #b22933;
+    border-color: #b22933;
+}
+
+#allFlats {
+    margin: 0 auto;
+    margin-right: -33%;
+}

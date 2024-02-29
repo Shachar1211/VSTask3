@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <script src="../js/AjaxCalls.js"></script>
+    <link href="../css/Vacation.css" rel="stylesheet" />
+
+    <script>
+        /* upper part*/
+        $(document).ready(function () {
+            if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+                let port = "44387";
+                server = 'https://localhost:' + port;
+
+            }
+            else {
+                server = "https://proj.ruppin.ac.il/cgroup57/test2/tar1";
+            }
+
+            var currentUser = JSON.parse(sessionStorage.getItem("currentUser"));
+            if (currentUser == undefined) {
+                var modal = document.getElementById("loginModal");
+                var span = document.getElementsByClassName("close")[0];
+
+                modal.style.display = "block";
+
+                span.onclick = function () {
+                    modal.style.display = "none";
+                }
+
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                }
+                $("#LogInForm").submit(SumbitLogin);
+                return;
+            }
+            else {
+                document.getElementById("UseridTB").value = currentUser.email;
+            }
+
+
+            $("#vacationsForm").submit(submitVacation);
+            $("#printVacations").click(getVacations);
+            $("#Enddate").on('blur', checkdates);
+            currentflatId = sessionStorage.getItem('flatIdClicked');
+            document.getElementById("Flatid").value = currentflatId;
+
+            $("#logoutBtn").click(function () {
+                sessionStorage.removeItem("currentUser");
+                document.getElementById("UseridTB").value = "";
+                 window.location.href = "flats.html"; 
+            });
+
+            $("#updateBtn").click(function () {
+                 window.location.href = "update.html";
+            });
+
+
+            
+
+        });
+
+        function SumbitLogin() {
+
+            let user = {
+                FirstName: "",
+                FamilyName: "",
+                Email: $("#emailTB").val(),
+                Password: $("#passwordTB").val()
+            }
+            api = server + "/api/Users/LogIn";
+            ajaxCall("POST", api, JSON.stringify(user), postLogInSCB, postLogInECB);
+            return false;
+
+        }
+        function postLogInSCB(res) {
+            console.log(res);
+            sessionStorage.setItem("currentUser", JSON.stringify(res));
+            location.reload();
+            var modal = document.getElementById("loginModal");
+            modal.style.display = "none";
+        }
+        function postLogInECB(err) {
+            console.log(err);
+            alert(err.responseText);
+        }
+
+
+        function checkdates() {
+            sdate = new Date($("#Startdate").val());
+            edate = new Date(this.value);
+            if (edate <= sdate) {
+                this.validity.valid = false;
+                this.setCustomValidity('The end date need to be before the start date');
+                this.value = "";
+                return;
+            }
+            else {
+                this.validity.valid = true;
+                this.setCustomValidity('');
+            }
+            if ((edate - sdate) / (24 * 60 * 60 * 1000) > 20) {
+                this.validity.valid = false;
+                this.setCustomValidity('The vacation can not exceed 20 days');
+                this.value = "";
+
+            }
+            else {
+                this.validity.valid = true;
+                this.setCustomValidity('');
+            }
+        }
+        function getVacations() {
+            let api = server + "/api/Vacations";
+            ajaxCall("GET", api, "", getSCB, getECB);
+        }
+        function getSCB(VacationsList) {
+            console.log(VacationsList);
+            showAllVacations(VacationsList);
+        }
+        function getECB(err) {
+            console.log(err);
+        }
+        function submitVacation() {
+
+
+
+            let vacation = {
+                Id: $("#IdTB").val(),
+                Userid: $("#UseridTB").val(),
+                Flatid: currentflatId,
+                Startdate: $("#Startdate").val(),
+                Enddate: $("#Enddate").val()
+            }
+            api = server + "/api/Vacations";
+            ajaxCall("POST", api, JSON.stringify(vacation), postSCB, postECB);
+            return false;
+        }
+        function postSCB(res) {
+            console.log(res);
+            location.reload();
+
+        }
+        function postECB(err) {
+            console.log(err);
+            alert(err.responseText);
+        }
+
+        /*lower part*/
+        function showAllVacations(VacationsList) {
+            document.getElementById("allVacations").innerHTML = "";
+            useridTB = $("#UseridTB").val();
+            var str = "";
+            if (useridTB == "") {
+                alert("Please enter your Id");
+            }
+            for (var i = 0; i < VacationsList.length; i++) {
+                if (VacationsList[i].userid == useridTB) {
+                    str += '<div class="card col-3">';
+                    str += '<div id="' + VacationsList[i].id + '"class="card-body">';
+                    str += "<p>ID: " + VacationsList[i].id + "<br/>";
+                    str += "User ID: " + VacationsList[i].userid + "<br/>";
+                    str += "Flat ID: " + VacationsList[i].flatid + "<br/>";
+                    str += "Start Date: " + VacationsList[i].startdate + "<br/>";
+                    str += "End Date: " + VacationsList[i].enddate;
+                    str += "</p>";
+                    str += "</div></div>";
+                }
+            }
+            if (str == "") {
+                document.getElementById("allVacations").innerHTML = "You dont have any vacations";
+            }
+            else
+                document.getElementById("allVacations").innerHTML = str;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <form id="vacationsForm">
+            <button type="button" id="logoutBtn">Logout</button>
+            <button type="button" id="updateBtn">update details</button>
+            <h2>Post a new vacation</h2>
+            <div class="form-group">
+                <label for="IdTB"><span class="flag">֍ </span>ID: </label>
+                <input type="number" class="form-control" id="IdTB" placeholder="Enter The Vacation ID" required />
+                <br />
+                <label for="UseridTB"><span class="flag">֍ </span>User ID: </label>
+                <input type="text" class="form-control" id="UseridTB" readonly />
+                <br />
+                <label for="Flatid"><span class="flag">֍ </span>Flat ID: </label>
+                <input type="text" class="form-control" id="Flatid" readonly />
+                <br />
+                <label for="Startdate"><span class="flag">֍ </span>Start Date: </label>
+                <input type="datetime" class="form-control" id="Startdate" placeholder="yyyy-mm-dd" pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}" required />
+                <br />
+                <label for="Enddate"><span class="flag">֍ </span>End Date: </label>
+                <input type="datetime" class="form-control" id="Enddate" placeholder="yyyy-mm-dd" pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}" required />
+                <br />
+                <button type="submit" id="submitBTN2">Submit</button>
+                <input type="button" id="printVacations" value="All My Vacations" />
+            </div>
+        </form>
+        <div class="container">
+            <br /><br />
+            <h2>All Vacations</h2>
+            <br />
+            <div class="row" id="allVacations">
+            </div>
+        </div>
+
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Login</h2>
+                <form id="LogInForm">
+                    <div class="form-group">
+                        <label for="emailTB"><span class="flag">֍ </span>Email: </label>
+                        <input type="email" class="form-control" id="emailTB" placeholder="email@example.com" required />
+                        <br />
+                        <label for="passwordTB"><span class="flag">֍ </span>Password: </label>
+                        <input type="password" class="form-control" id="passwordTB" placeholder="Choose password" required />
+                        <br />
+                        <input type="submit" id="submitloginBTN" value="Submit" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+

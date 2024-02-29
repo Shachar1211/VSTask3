@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="#" />
+    <script src="../js/AjaxCalls.js"></script>
+    <link href="../css/Flats.css" rel="stylesheet" />
+    
+    <script>
+        /* upper part*/
+        $(document).ready(function () {
+            if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+                let port = "44387";
+                server = 'https://localhost:' + port;
+               
+            }
+            else {
+                server = "https://proj.ruppin.ac.il/cgroup57/test2/tar1";
+            }
+            
+            $("#flarsForm").submit(submitFlat);
+            $("#numberOfRoomsTB").on('blur', checkanumofrooms);
+            getFlats();
+        });
+        function checkanumofrooms() {
+            if (this.value > 8) {
+                this.validity.valid = false;
+                this.setCustomValidity('needed number under 9');
+                this.value = "";
+            }
+            else {
+                this.validity.valid = true;
+                this.setCustomValidity('');
+            }
+        }
+        function getFlats() {
+            api = server + "/api/Flats";
+            ajaxCall("GET", api, "", getSCB, getECB);
+        }
+        function getSCB(FlatsList) {
+            console.log(FlatsList);
+            showAllFlats(FlatsList);
+        }
+        function getECB(err) {
+            console.log(err);
+        }
+        function submitFlat() {
+            let flat = {
+                Id: $("#idTB").val(),
+                City: $("#cityTB-choice").val(),
+                Address: $("#addressTB").val(),
+                Price: $("#priceTB").val(),
+                NumberOfRooms: $("#numberOfRoomsTB").val()
+            }  
+            api = server + "/api/Flats";
+            ajaxCall("POST", api, JSON.stringify(flat), postSCB, postECB);
+            return false;
+        }
+        function postSCB(res) {
+            console.log(res);
+            location.reload();
+        }
+        function postECB(err) {
+            console.log("Error in postECB:", err);
+            alert("This flat is already exists");
+            location.reload();
+        }
+
+
+        /* lower part*/
+        function showAllFlats(FlatsList) {
+            document.getElementById("allFlats").innerHTML = "";
+            var str = "";
+            for (var i = 0; i < FlatsList.length; i++) {
+                str += '<div class="card col-3">';
+                str += '<div id="' + i + '" class="card-body">';
+                str += "<p>ID: " + FlatsList[i].id + "<br/>";
+                str += "City: " + FlatsList[i].city + "<br/>";
+                str += "Address: " + FlatsList[i].address + "<br/>";
+                str += "Price: " + FlatsList[i].price + "<br/>";
+                str += "Number Of Rooms: " + FlatsList[i].numberOfRooms;
+                str += "</p><button id='" + FlatsList[i].id + "' class='flatsBTN'";
+                str += ">Order</button>";
+                str += "</div></div>";
+            }
+            document.getElementById("allFlats").innerHTML = str;
+        }
+        document.addEventListener('click', () => {
+            const flatButtons = document.querySelectorAll('.flatsBTN');
+            flatButtons.forEach(button => {
+                button.addEventListener('click', handleFlatButtonClick);
+            });
+        });
+
+        function handleFlatButtonClick(event) {
+            const flatId = event.currentTarget.id;
+            currentflatId = sessionStorage.setItem('flatIdClicked', flatId);
+            console.log(flatId);
+            window.location.href = `vacations.html`;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <form id="flarsForm">
+            <h2>Post a new flat</h2>
+            <div class="form-group">
+                <label for="idTB"><span class="flag">֍ </span>ID: </label>
+                <input type="number" class="form-control" id="idTB" placeholder="Enter the flat Id" required />
+                <br />
+                <label for="cityTB"><span class="flag">֍ </span>City: </label>
+                <input list="cityTB" id="cityTB-choice" name="cityTB" required/>
+                <datalist id="cityTB">
+                    <option value="Tel Aviv"></option>
+                    <option value="Haifa"></option>
+                    <option value="Holon"></option>
+                    <option value="Hezelia"></option>
+                </datalist>
+                <br /><br />
+                <label for="addressTB"><span class="flag">֍ </span>Address: </label>
+                <input type="text" class="form-control" id="addressTB" placeholder="Enter Address" maxlength="25" required />
+                <br />
+                <label for="priceTB"><span class="flag">֍ </span>Price: </label>
+                <input type="number" class="form-control" id="priceTB" placeholder="Enter a price" required />
+                <br />
+                <label for="numberOfRoomsTB"><span class="flag">֍ </span>Number Of Rooms: </label>
+                <input type="number" class="form-control" id="numberOfRoomsTB" placeholder="Enter number of rooms" required />
+                <br />
+                <input type="submit" id="submitBTN" value="Submit"/>
+            </div>
+        </form>
+        <br /><br />
+              <div class="container">
+                  <h2>All Flats</h2>
+                  <br />
+                  <div class="row" id="allFlats">
+                  </div>
+              </div>
+    </div>
+</body>
+</html>

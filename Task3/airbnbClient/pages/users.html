@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="#" />
+    <script src="../js/AjaxCalls.js"></script>
+    <link href="../css/Flats.css" rel="stylesheet" />
+    <script>
+        $(document).ready(function () {
+            if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+                let port = "44387";
+                server = 'https://localhost:' + port;
+
+            }
+            else {
+                server = "https://proj.ruppin.ac.il/cgroup57/test2/tar1";
+            }
+
+            $("#RegisterForm").submit(submitUser);
+        });
+
+        function submitUser() {
+            let email = $("#emailTB").val();
+            if (!isValidEmail(email)) {
+                alert("Please enter a valid email address.");
+                return;
+            }
+
+            let user = {
+                FirstName: $("#firstNameTB").val(),
+                FamilyName: $("#familyNameTB").val(),
+                Email: $("#emailTB").val(),
+                Password: $("#passwordTB").val()
+            }
+            api = server + "/api/Users";
+            ajaxCall("POST", api, JSON.stringify(user), postSCB, postECB);
+            return false;
+        }
+        function postSCB(res) {
+            console.log(res);
+            //swal("Register succeed");
+            alert("Register succeed");
+            location.reload();
+        }
+        function postECB(err) {
+            console.log("Error in postECB:", err);
+            alert("Faild register user, try again");
+            location.reload();
+        }
+        function isValidEmail(email) {
+            // Regular expression for basic email validation
+            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailPattern.test(email);
+        }
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <form id="RegisterForm">
+            <h2>Register</h2>
+            <div class="form-group"> 
+                <label for="firstNameTB"><span class="flag">֍ </span>First Name: </label>
+                <input type="text" class="form-control" id="firstNameTB" placeholder="Enter your first name" required />
+                <br />
+                <label for="familyNameTB"><span class="flag">֍ </span>Family Name: </label>
+                <input type="text" class="form-control" id="familyNameTB" placeholder="Enter your family name" required />
+                <br />
+                <label for="emailTB"><span class="flag">֍ </span>Email: </label>
+                <input type="email" class="form-control" id="emailTB" placeholder="email@example.com" required />
+                <br />
+                <label for="passwordTB"><span class="flag">֍ </span>Password: </label>
+                <input type="password" class="form-control" id="passwordTB" placeholder="Choose password" required />
+                <br />
+                <input type="submit" id="submitBTN" value="Submit" />
+            </div>
+        </form>
+    </div>
+</body>
+</html>
